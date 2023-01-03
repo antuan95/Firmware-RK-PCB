@@ -46,19 +46,17 @@ static void Check_Switches(void)
 			{
 				/*if ((switches[BUTTON].state != switches[BUTTON].previousState) && (switches[BUTTON].state  == PRESSED))
 				{
-					switches[i].counter++;					// для кнопки увеливаем счетчик нажатий
+					switches[i].counter++;					// для кнопки увеличиваем счетчик нажатий
 				}*/
 				if (switches[BUTTON].state != switches[BUTTON].previousState)
 				{
-					if (switches[BUTTON].state == PRESSED)
+					if ((switches[BUTTON].state == RELEASED) && (switches[BUTTON].previousState == PRESSED))
 					{
 						button_flag = 1;
 						switches[i].counter++;					// для кнопки увеливаем счетчик нажатий
 					}
-					else
+					else if ((switches[BUTTON].state == PRESSED) && (switches[BUTTON].previousState == RELEASED))
 						button_flag = 0;
-//					if (button_flag == 1)
-//						switches[i].counter++;					// для кнопки увеливаем счетчик нажатий
 				}
 				switches[i].state = switches[i].previousState;	// сохраняем текущее состояние
 				switches[i].checkCounter = 0;						// сбрасываем временный счетчик
