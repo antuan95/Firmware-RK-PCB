@@ -116,6 +116,7 @@ int main(void)
 	  testMessage[4] = Get_Switch_State(MOTOR_SW);
 	  testMessage[5] = Get_Switch_State(ARM_SW);
 	  testMessage[6] = Get_Encoder_Value();
+	  HAL_GPIO_TogglePin(GPIOA, Ass_det_Pin);
 	  HAL_UART_Transmit(&hlpuart1, testMessage, 7, 100);
 	  HAL_Delay(500);
 
@@ -277,7 +278,7 @@ static void MX_TIM14_Init(void)
   htim14.Instance = TIM14;
   htim14.Init.Prescaler = 159;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 50000;
+  htim14.Init.Period = 50;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
@@ -310,7 +311,12 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : Ass_det_Pin L_Ring_Pin Button_Pin */
-  GPIO_InitStruct.Pin = Ass_det_Pin|L_Ring_Pin|Button_Pin;
+  GPIO_InitStruct.Pin = Ass_det_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = L_Ring_Pin|Button_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -360,8 +366,11 @@ static void MX_GPIO_Init(void)
 void Rising_Falling_Callback(uint16_t pin) // обрабатываем прерывание по любому фронту
 {
 	if((pin == EncA_Pin) || (pin == EncB_Pin))
+		{
+		Start_Timer(pin);
 		//Enc_Handler(pin);
-	HAL_TIM_Base_Start_IT(&htim14);// запустить таймер
+		}
+
 }
 
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t pin)

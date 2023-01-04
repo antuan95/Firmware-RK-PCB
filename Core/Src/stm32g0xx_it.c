@@ -182,6 +182,7 @@ void TIM14_IRQHandler(void)
   /* USER CODE END TIM14_IRQn 0 */
   HAL_TIM_IRQHandler(&htim14);
   /* USER CODE BEGIN TIM14_IRQn 1 */
+ // HAL_GPIO_TogglePin(GPIOA, Ass_det_Pin);
   Enc_Handler();
   /* USER CODE END TIM14_IRQn 1 */
 }

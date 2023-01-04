@@ -9,4 +9,5 @@
 void Enc_Handler(uint16_t);		  // обработчик прерываний пинов энкодера
 uint8_t Get_Encoder_Value(void);  // возвращает значение инкрементального энкодера
 
+
 #endif
