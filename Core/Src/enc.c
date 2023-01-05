@@ -11,9 +11,8 @@ typedef struct
 }enc_TypeDef;
 
 extern TIM_HandleTypeDef htim14;
-uint8_t Enc_Pin;
 volatile enc_TypeDef enc;			  // структура энкодера
-uint16_t PIN;
+uint8_t Enc_Pin;
 
 static void Set_Count(int8_t state)   // Устанавливаем значение счетчика
 {
@@ -31,15 +30,14 @@ uint8_t Get_Encoder_Value(void) // получить значение энкод�
 
 void Start_Timer (uint8_t Enc_Pin)
 {
-	Enc_Pin = 1;
-	TIM1->SR &= ~TIM_SR_UIF; 		// 	 сбрасываем регистр UIF
-	TIM14 -> CNT = 0; 			// сбрасываем счётчик таймера 14
-	HAL_TIM_Base_Start_IT(&htim14);
-
 	if (Enc_Pin == 0)
 	{
-
+		TIM1->SR &= ~TIM_SR_UIF; 		// 	 сбрасываем регистр UIF
+		TIM14 -> CNT = 0; 			// сбрасываем счётчик таймера 14
+		HAL_TIM_Base_Start_IT(&htim14);
 	}
+	else if (Enc_Pin == 1)
+		HAL_TIM_Base_Stop_IT(&htim14);
 }
 
 void Enc_Handler(uint16_t GPIO_Pin)
