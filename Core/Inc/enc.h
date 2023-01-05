@@ -6,8 +6,9 @@
 
 #define ENC_DEBOUNCE_PAUSE 		5	// задержка обработки - антидребезг
 
-void Enc_Handler(uint16_t);		  // обработчик прерываний пинов энкодера
+void Enc_Handler(void);		  // обработчик прерываний пинов энкодера
 uint8_t Get_Encoder_Value(void);  // возвращает значение инкрементального энкодера
+void Start_Timer(uint16_t);
 
 
 #endif

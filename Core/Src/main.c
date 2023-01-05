@@ -363,24 +363,23 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void Rising_Falling_Callback(uint16_t pin, uint8_t Enc_Pin) // обрабатываем прерывание по любому фронту
+void Rising_Falling_Callback(uint16_t pin) // обрабатываем прерывание по любому фронту
 {
 	if((pin == EncA_Pin) || (pin == EncB_Pin))
 		{
-		Enc_Pin = 1;
-		Start_Timer();
+		Start_Timer(pin);
 		//Enc_Handler(pin);
 		}
 }
 
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t pin)
 {
-	Rising_Falling_Callback(pin, Enc_Pin);
+	Rising_Falling_Callback(pin);
 }
 
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t pin)
 {
-	Rising_Falling_Callback(pin, Enc_Pin);
+	Rising_Falling_Callback(pin);
 }
 
 /* USER CODE END 4 */
