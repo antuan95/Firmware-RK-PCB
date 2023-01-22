@@ -27,7 +27,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define BUFSIZE 2 // размер буфера нужного размера
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -48,7 +48,8 @@ TIM_HandleTypeDef htim14;
 
 /* USER CODE BEGIN PV */
 uint8_t testMessage[10];
-uint8_t receiveMessage[2];
+uint8_t rx_buff[BUFSIZE];
+//uint16_t rx_buff_len;
 
 /* USER CODE END PV */
 
@@ -100,6 +101,7 @@ int main(void)
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   Init_Switches();
+  //HAL_UART_Receive(&hlpuart1, rx_buff, BUFSIZE, 100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,7 +118,6 @@ int main(void)
 	  testMessage[4] = Get_Switch_State(MOTOR_SW);
 	  testMessage[5] = Get_Switch_State(ARM_SW);
 	  testMessage[6] = Get_Encoder_Value();
-	  HAL_GPIO_TogglePin(GPIOA, Ass_det_Pin);
 	  HAL_UART_Transmit(&hlpuart1, testMessage, 7, 100);
 	  HAL_Delay(500);
 
@@ -278,7 +279,7 @@ static void MX_TIM14_Init(void)
   htim14.Instance = TIM14;
   htim14.Init.Prescaler = 159;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 50;
+  htim14.Init.Period = 50000;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
@@ -310,12 +311,13 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Ass_det_Pin L_Ring_Pin Button_Pin */
+  /*Configure GPIO pin : Ass_det_Pin */
   GPIO_InitStruct.Pin = Ass_det_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(Ass_det_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : L_Ring_Pin Button_Pin */
   GPIO_InitStruct.Pin = L_Ring_Pin|Button_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -381,6 +383,17 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t pin)
 {
 	Rising_Falling_Callback(pin);
 }
+
+/*void UART_RX (uint8_t *buf)
+{
+	if (buf[1] == 1)
+	HAL_GPIO_TogglePin(GPIOA, Ass_det_Pin);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hlpuart1)
+{
+	  UART_RX(rx_buff);
+}*/
 
 /* USER CODE END 4 */
 
