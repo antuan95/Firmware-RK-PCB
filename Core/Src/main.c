@@ -2,17 +2,7 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  * @brief          : Rotary_knob Firmware
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -21,8 +11,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "enc.h"
 #include "switches.h"
+#include "enc.h"
+#include "rk_uart.h"
+#include "rk_parsing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,6 +24,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define GET_STATE		0x71
+#define LED					0x72
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,8 +41,8 @@ UART_HandleTypeDef hlpuart1;
 TIM_HandleTypeDef htim14;
 
 /* USER CODE BEGIN PV */
-uint8_t testMessage[10];
-uint8_t receiveMessage[2];
+
+message_TypeDef *message_main;
 
 /* USER CODE END PV */
 
@@ -59,7 +53,7 @@ static void MX_I2C1_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_TIM14_Init(void);
 /* USER CODE BEGIN PFP */
-
+void Led(uint8_t led, GPIO_PinState status);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -100,6 +94,8 @@ int main(void)
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   Init_Switches();
+  message_main = Init_UART(&hlpuart1, MAIN);
+  Receive_Message(message_main);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -109,16 +105,26 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  testMessage[0] = Get_Button_Counter();
-	  testMessage[1] = Get_Switch_State(BUTTON);
-	  testMessage[2] = Get_Switch_State(ASS_DET);
-	  testMessage[3] = Get_Switch_State(L_RING);
-	  testMessage[4] = Get_Switch_State(MOTOR_SW);
-	  testMessage[5] = Get_Switch_State(ARM_SW);
-	  testMessage[6] = Get_Encoder_Value();
-	  HAL_GPIO_TogglePin(GPIOA, Ass_det_Pin);
-	  HAL_UART_Transmit(&hlpuart1, testMessage, 7, 100);
-	  HAL_Delay(500);
+  	if(message_main->ready == DATA_READY)
+		{
+			cmd_TypeDef data;
+			error_TypeDef error = Parse_Main_Message(&data, message_main);
+			if(error == DATA_NO_ERROR)
+			{
+				switch(data.cmd)
+				{
+				case GET_STATE:
+					Send_State(message_main);
+					break;
+				case LED:
+					Led(1, data.value);
+					break;
+				default:
+					break;
+				}
+			}
+			Receive_Message(message_main);
+		}
 
   }
   /* USER CODE END 3 */
@@ -144,7 +150,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 8;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -154,11 +166,11 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -180,7 +192,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00303D5B;
+  hi2c1.Init.Timing = 0x00707CBB;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -276,11 +288,11 @@ static void MX_TIM14_Init(void)
 
   /* USER CODE END TIM14_Init 1 */
   htim14.Instance = TIM14;
-  htim14.Init.Prescaler = 159;
+  htim14.Init.Prescaler = 31;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 50;
+  htim14.Init.Period = 450;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
   {
     Error_Handler();
@@ -303,6 +315,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RS485_control_GPIO_Port, RS485_control_Pin, GPIO_PIN_RESET);
@@ -310,13 +323,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Ass_det_Pin L_Ring_Pin Button_Pin */
-  GPIO_InitStruct.Pin = Ass_det_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
-  GPIO_InitStruct.Pin = L_Ring_Pin|Button_Pin;
+  /*Configure GPIO pins : Ass_det_Pin L_Ring_Pin Button_Pin */
+  GPIO_InitStruct.Pin = Ass_det_Pin|L_Ring_Pin|Button_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -331,13 +342,13 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : EncA_Pin */
   GPIO_InitStruct.Pin = EncA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(EncA_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : EncB_Pin */
   GPIO_InitStruct.Pin = EncB_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(EncB_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RESB_Pin */
@@ -347,6 +358,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(RESB_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : Arm_sw_Pin Motor_sw_Pin */
   GPIO_InitStruct.Pin = Arm_sw_Pin|Motor_sw_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -354,10 +372,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }
@@ -366,10 +384,9 @@ static void MX_GPIO_Init(void)
 void Rising_Falling_Callback(uint16_t pin) // обрабатываем прерывание по любому фронту
 {
 	if((pin == EncA_Pin) || (pin == EncB_Pin))
-		{
-		Start_Timer(pin);
-		//Enc_Handler(pin);
-		}
+	{
+		Enc_Debounce(&htim14, pin);
+	}
 }
 
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t pin)
@@ -381,7 +398,10 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t pin)
 {
 	Rising_Falling_Callback(pin);
 }
-
+void Led(uint8_t led, GPIO_PinState status)
+{
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, status);
+}
 /* USER CODE END 4 */
 
 /**

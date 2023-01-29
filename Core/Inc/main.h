@@ -77,6 +77,8 @@ void Error_Handler(void);
 #define EncB_EXTI_IRQn EXTI0_1_IRQn
 #define RESB_Pin GPIO_PIN_1
 #define RESB_GPIO_Port GPIOB
+#define LED_Pin GPIO_PIN_6
+#define LED_GPIO_Port GPIOC
 #define Arm_sw_Pin GPIO_PIN_3
 #define Arm_sw_GPIO_Port GPIOB
 #define Motor_sw_Pin GPIO_PIN_4
@@ -85,7 +87,6 @@ void Error_Handler(void);
 #define Motor_SCL_GPIO_Port GPIOB
 #define Motor_SDA_Pin GPIO_PIN_7
 #define Motor_SDA_GPIO_Port GPIOB
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
