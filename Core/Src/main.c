@@ -15,6 +15,7 @@
 #include "enc.h"
 #include "rk_uart.h"
 #include "rk_parsing.h"
+#include "rk_mm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +44,7 @@ TIM_HandleTypeDef htim14;
 /* USER CODE BEGIN PV */
 
 message_TypeDef *message_main;
+mm_TypeDef *mm;
 
 /* USER CODE END PV */
 
@@ -96,6 +98,7 @@ int main(void)
   Init_Switches();
   message_main = Init_UART(&hlpuart1, MAIN);
   Receive_Message(message_main);
+  mm = MM_Init(&hi2c1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
