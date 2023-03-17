@@ -11,10 +11,8 @@ typedef struct					// структура концевика
 	uint8_t counter;			// счетчик нажатий (для кнопки)
 }switch_TypeDef;
 
-//uint8_t previousState = 1;
-uint8_t button_flag = 0;
 
-volatile switch_TypeDef switches[SWITCHES_NUMBER]; 			// массив структур концевиков
+volatile switch_TypeDef switches[SWITCHES_NUMBER] = {0};	// массив структур концевиков
 volatile uint8_t checkSwitchPeriod = CHECK_SWITCH_PERIOD;	// переменная формирует период опроса,
 															// период SysTick x checkSwitchPeriod = 10мс
 
@@ -30,7 +28,6 @@ void Init_Switches(void)									// заполняем порты и пины в
 	switches[ARM_SW].port = Arm_sw_GPIO_Port;
 	switches[MOTOR_SW].pin = Motor_sw_Pin;
 	switches[MOTOR_SW].port = Motor_sw_GPIO_Port;
-	switches[BUTTON].previousState = 1;
 }
 
 static void Check_Switches(void)
@@ -41,30 +38,20 @@ static void Check_Switches(void)
 		tempState = HAL_GPIO_ReadPin(switches[i].port, switches[i].pin); // считываем состояние пина
 		if(tempState == switches[i].previousState)			// если состяние такое же, как в предыдущем опросе
 		{
-			switches[i].checkCounter++;					// увеличиваем временный счетчик
-			if(switches[i].checkCounter == 3)				// если 3 раза подряд считали одинаковое состояние
+			switches[i].checkCounter++;						// увеличиваем временный счетчик
+			if(switches[i].checkCounter == NUMBER_OF_READS)	// если 3 раза подряд считали одинаковое состояние
 			{
-				/*if ((switches[BUTTON].state != switches[BUTTON].previousState) && (switches[BUTTON].state  == PRESSED))
+				if((switches[i].state == RELEASED) && (tempState == PRESSED))
 				{
-					switches[i].counter++;					// для кнопки увеличиваем счетчик нажатий
-				}*/
-				if (switches[BUTTON].state != switches[BUTTON].previousState)
-				{
-					if ((switches[BUTTON].state == RELEASED) && (switches[BUTTON].previousState == PRESSED))
-					{
-						button_flag = 1;
-						switches[i].counter++;					// для кнопки увеливаем счетчик нажатий
-					}
-					else if ((switches[BUTTON].state == PRESSED) && (switches[BUTTON].previousState == RELEASED))
-						button_flag = 0;
+					switches[i].counter++;					// для кнопки увеливаем счетчик нажатий
 				}
 				switches[i].state = switches[i].previousState;	// сохраняем текущее состояние
-				switches[i].checkCounter = 0;						// сбрасываем временный счетчик
+				switches[i].checkCounter = 0;					// сбрасываем временный счетчик
 			}
 		}
 		else										// если текущее состояние пина отличается от предыдущего
 		{
-			switches[i].previousState = tempState; // запоминаем новое состояние
+			switches[i].previousState = tempState;  // запоминаем новое состояние
 			switches[i].checkCounter = 0;			// сбрасываем временный счетчик
 		}
 	}
@@ -91,4 +78,17 @@ switch_state_TypeDef Get_Switch_State(switch_name_TypeDef name)
 uint8_t Get_Button_Counter(void)
 {
 	return switches[BUTTON].counter;
+}
+
+uint8_t Get_Sensor_Byte(void)
+{
+	uint8_t byte = 0;
+	GPIO_PinState led_status;
+	for(uint8_t i = 0; i < SWITCHES_NUMBER; i++)
+	{
+		byte |= (switches[i].state << i);
+	}
+	led_status = HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin);
+	byte |= (led_status << SWITCHES_NUMBER);
+	return byte;
 }
