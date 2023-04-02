@@ -26,6 +26,6 @@ typedef enum
 error_TypeDef Parse_Main_Message(cmd_TypeDef *command, message_TypeDef *message);
 uint8_t CRC8(const uint8_t *data,int length);
 void Send_State(message_TypeDef *message);
-void Send_State_RF(message_TypeDef *message);
+//void Send_State_RF(message_TypeDef *message);
 
 #endif

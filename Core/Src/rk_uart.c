@@ -46,17 +46,19 @@ void Receive_Message(message_TypeDef *message)
 {
 	if(message->uart != NULL)
 	{
-		message->rx_size = 0;
-		message->ready = DATA_NOT_READY;
-		HAL_UARTEx_ReceiveToIdle_IT(message->uart,
-																message->m_rx,
-																MESSAGE_MAX_SIZE);
+			message->rx_size = 0;
+			message->ready = DATA_NOT_READY;
+			HAL_UARTEx_ReceiveToIdle_IT(message->uart,
+										message->m_rx,
+										MESSAGE_MAX_SIZE);
 	}
+
 }
 
 void Send_Message(message_TypeDef *message)
 {
-	HAL_UART_Transmit_IT(message->uart,
-											 message->m_tx,
-											 message->tx_size);
+		HAL_UART_Transmit_IT(message->uart,
+						 	 message->m_tx,
+							 message->tx_size);
+
 }

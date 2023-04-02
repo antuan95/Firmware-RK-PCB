@@ -1,33 +1,39 @@
-#include <rk_parsing.h>
+#include <rfid_parsing.h>
 
-error_TypeDef Parse_Main_Message(cmd_TypeDef *command, message_TypeDef *message)
+error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *message)
 {
-	error_TypeDef er = DATA_NO_ERROR;
-	if(message->rx_size != message->m_rx[2] + SIZE_OFFSET)
+	error_RF_TypeDef er = DATA_NO_ERROR;
+	if(message->rx_size != message->rfid_rx[1] + SIZE_OFFSET)
 	{
 		er = SIZE_ERROR;
 	}
-	else if(message->m_rx[0] != PREABLE)
+	else if(message->rfid_rx[0] != PREAMBLE)
 	{
 		er = PREAMBLE_ERROR;
 	}
-	else if(message->m_rx[1] != ADDRESS)
+	else if(message->rfid_rx[2] != CMD_TAG || message->rfid_rx[2] != CMD_VERSION)
 	{
-		er = ADDRESS_ERROR;
+		er = COMMAND_ERROR;
 	}
-	else if(message->m_rx[message->rx_size-1] != CRC8(message->m_rx, message->rx_size - 1))
+	else if(message->rfid_rx[message->rx_size-1] != CRC8(message->rfid_rx, message->rx_size - 1))
 	{
 		er = CRC_ERROR;
 	}
 	else
-	{
-		command->cmd = message->m_rx[3];
-		command->value = message->m_rx[4];
+	{//Добавить условия для двух типов принимаемых сообщений
+		command->value_sensors = message->rfid_rx[4];
+		command->value_tag = message->rfid_rx[3];
+		command->cmd = message->rfid_rx[2];
+		/* Добавить парсинг версии прошивки
+	message->rfid_tx[3] = 0x01;								// RFID FW Version 1st byte
+	message->rfid_tx[4] = 0x09;								// RFID FW Version 2d byte
+	message->rfid_tx[5] = 0x00;								// RFID FW Version 3d byte		 */
+
 	}
 	return er;
 }
 
-uint8_t CRC8(const uint8_t *data, int length)
+/*uint8_t CRC8(const uint8_t *data, int length)
 {
 	uint8_t crc = 0x00;
 	uint8_t extract;
@@ -46,20 +52,21 @@ uint8_t CRC8(const uint8_t *data, int length)
 		data++;
 	}
 	return crc;
+}*/
+void Send_Request_RF_Version(message_TypeDef *message)
+{
+	message->rfid_tx[0] = PREAMBLE;
+	message->rfid_tx[1] = TX_PAYLOAD_SIZE_VERSION;
+	message->rfid_tx[2] = 0x01;
+	message->rfid_tx[1] = CRC8(message->rfid_tx, TX_PAYLOAD_SIZE_VERSION+SIZE_OFFSET-1);
+	Send_Message(message);
 }
 
-void Send_State(message_TypeDef *message)
+void Send_Request_RF_Tag(message_TypeDef *message)
 {
-	message->m_tx[0] = PREABLE;
-	message->m_tx[1] = ADDRESS;
-	message->m_tx[2] = TX_PAYLOAD_SIZE;
-	message->m_tx[3] = 0xFF;								// RFID Tag
-	message->m_tx[4] = Get_Sensor_Byte();	// Switches status
-	message->m_tx[5] = 0xFF;								// Motor hinge position
-	message->m_tx[6] = 0xFF;								// Arm hinge position
-	message->m_tx[7] = Get_Button_Counter();
-	message->m_tx[8] = Get_Encoder_Value();
-	message->m_tx[9] = CRC8(message->m_tx, TX_PAYLOAD_SIZE+SIZE_OFFSET-1);
-	message->tx_size = TX_PAYLOAD_SIZE+SIZE_OFFSET;
+	message->rfid_tx[0] = PREAMBLE;
+	message->rfid_tx[1] = TX_PAYLOAD_SIZE_TAG;
+	message->rfid_tx[2] = 0x02;								// RFID Tag
+	message->rfid_tx[3] = CRC8(message->rfid_tx, TX_PAYLOAD_SIZE_TAG+SIZE_OFFSET-1);
 	Send_Message(message);
 }

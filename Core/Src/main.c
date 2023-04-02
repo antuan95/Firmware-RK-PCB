@@ -15,6 +15,7 @@
 #include "enc.h"
 #include "rk_uart.h"
 #include "rk_parsing.h"
+#include "rfid_parsing.h"
 #include "rk_mm.h"
 /* USER CODE END Includes */
 
@@ -26,7 +27,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define GET_STATE		0x71
-#define LED					0x72
+#define LED				0x72
+#define GET_VERSION		0x01
+#define GET_TAG			0x02
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -38,6 +41,7 @@
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef hlpuart1;
+UART_HandleTypeDef huart2;
 
 TIM_HandleTypeDef htim14;
 
@@ -56,6 +60,7 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_TIM14_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void Led(uint8_t led, GPIO_PinState status);
 /* USER CODE END PFP */
@@ -96,11 +101,13 @@ int main(void)
   MX_I2C1_Init();
   MX_LPUART1_UART_Init();
   MX_TIM14_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   Init_Switches();
   message_main = Init_UART(&hlpuart1, MAIN);
   message_rfid = Init_UART(&huart2, RFID);
   Receive_Message(message_main);
+  Receive_Message(message_rfid);
   HAL_Delay(5);
   mm = MM_Init(&hi2c1);
 //  HAL_I2C_Master_Receive(&hi2c1, MM_CHIP_ADDRESS, testBuf, 1, 100);
@@ -138,6 +145,21 @@ int main(void)
 			Receive_Message(message_main);
 		}
 
+  	{//условие ?
+  		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
+  		{
+  			if(message_rfid->ready == DATA_READY)
+				{
+					cmd_TypeDef data;
+					error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
+					if(error_rf == DATA_NO_ERROR)
+						{
+							Receive_Message(message_rfid);
+						}
+
+				}
+  		}
+  	}
   }
   /* USER CODE END 3 */
 }
@@ -281,6 +303,42 @@ static void MX_LPUART1_UART_Init(void)
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 9600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 

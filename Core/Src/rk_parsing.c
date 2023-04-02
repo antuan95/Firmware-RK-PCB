@@ -63,3 +63,13 @@ void Send_State(message_TypeDef *message)
 	message->tx_size = TX_PAYLOAD_SIZE+SIZE_OFFSET;
 	Send_Message(message);
 }
+
+/*void Send_State_RF(message_TypeDef *message)
+{
+	message->rfid_tx[0] = PREABLE;
+	message->rfid_tx[1] = ADDRESS;
+	message->rfid_tx[2] = TX_PAYLOAD_SIZE;
+	message->rfid_tx[3] = 0xFF;								// RFID Tag
+	message->rfid_tx[4] = Get_Sensor_Byte();	// Switches status
+}
+*/
