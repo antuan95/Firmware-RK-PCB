@@ -45,6 +45,11 @@ TIM_HandleTypeDef htim14;
 
 message_TypeDef *message_main;
 mm_TypeDef *mm;
+mm_data_TypeDef *mm_d;
+int16_t mmx;
+int16_t mmy;
+int16_t mmz;
+int16_t mmt;
 
 /* USER CODE END PV */
 
@@ -128,6 +133,12 @@ int main(void)
 			}
 			Receive_Message(message_main);
 		}
+    mm_d = MM_Get_Data();
+    mmx = (uint16_t)(mm_d->x_h << 8) | mm_d->x_l;
+    mmy = (uint16_t)(mm_d->y_h << 8) | mm_d->y_l;
+    mmz = (uint16_t)(mm_d->z_h << 8) | mm_d->z_l;
+    mmt = ((uint16_t)(mm_d->t_h << 8) | mm_d->t_l)/5;
+  	HAL_Delay(100);
 
   }
   /* USER CODE END 3 */
