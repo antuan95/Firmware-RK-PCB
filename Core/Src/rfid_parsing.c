@@ -2,22 +2,22 @@
 
 error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *message)
 {
-	error_RF_TypeDef er = DATA_NO_ERROR;
+	error_RF_TypeDef er = RF_DATA_NO_ERROR;
 	if(message->rx_size != message->rfid_rx[1] + SIZE_OFFSET)
 	{
-		er = SIZE_ERROR;
+		er = RF_SIZE_ERROR;
 	}
 	else if(message->rfid_rx[0] != PREAMBLE)
 	{
-		er = PREAMBLE_ERROR;
+		er = RF_PREAMBLE_ERROR;
 	}
 	else if(message->rfid_rx[2] != CMD_TAG || message->rfid_rx[2] != CMD_VERSION)
 	{
-		er = COMMAND_ERROR;
+		er = RF_COMMAND_ERROR;
 	}
 	else if(message->rfid_rx[message->rx_size-1] != CRC8(message->rfid_rx, message->rx_size - 1))
 	{
-		er = CRC_ERROR;
+		er = RF_CRC_ERROR;
 	}
 	else
 	{//Добавить условия для двух типов принимаемых сообщений

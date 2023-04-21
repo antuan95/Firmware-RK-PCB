@@ -1,5 +1,5 @@
-#ifndef _PARSING_H
-#define _PARSING_H
+#ifndef _RF_PARSING_H
+#define _RF_PARSING_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -18,11 +18,11 @@
 
 typedef enum
 {
-	DATA_NO_ERROR = 0,
-    COMMAND_ERROR = 1,
-	SIZE_ERROR = 2,
-	CRC_ERROR = 3,
-	PREAMBLE_ERROR = 4
+	RF_DATA_NO_ERROR = 0,
+  RF_COMMAND_ERROR = 1,
+	RF_SIZE_ERROR = 2,
+	RF_CRC_ERROR = 3,
+	RF_PREAMBLE_ERROR = 4
 }error_RF_TypeDef;
 
 error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *message);

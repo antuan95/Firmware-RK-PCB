@@ -145,20 +145,18 @@ int main(void)
 			Receive_Message(message_main);
 		}
 
+  	if(1)
   	{//условие ?
   		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
-  		{
-  			if(message_rfid->ready == DATA_READY)
+			if(message_rfid->ready == DATA_READY)
+			{
+				cmd_TypeDef data;
+				error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
+				if(error_rf == RF_DATA_NO_ERROR)
 				{
-					cmd_TypeDef data;
-					error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
-					if(error_rf == DATA_NO_ERROR)
-						{
-							Receive_Message(message_rfid);
-						}
-
+					Receive_Message(message_rfid);
 				}
-  		}
+			}
   	}
   }
   /* USER CODE END 3 */
