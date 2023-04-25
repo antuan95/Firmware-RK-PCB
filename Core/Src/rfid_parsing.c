@@ -1,23 +1,27 @@
 #include <rfid_parsing.h>
 
+volatile int checkrfidPeriod = CHECK_RFID_PERIOD;	// переменная формирует период опроса,
+															// период SysTick x checkSwitchPeriod = 10мс
+uint8_t RFID_Flag;
+
 error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *message)
 {
-	error_RF_TypeDef er = DATA_NO_ERROR;
-	if(message->rx_size != message->rfid_rx[1] + SIZE_OFFSET)
+	error_RF_TypeDef er = RF_DATA_NO_ERROR;
+	if(message->rx_size != message->rfid_rx[1] + RF_SIZE_OFFSET)
 	{
-		er = SIZE_ERROR;
+		er = RF_SIZE_ERROR;
 	}
-	else if(message->rfid_rx[0] != PREAMBLE)
+	else if(message->rfid_rx[0] != RF_PREAMBLE)
 	{
-		er = PREAMBLE_ERROR;
+		er = RF_PREAMBLE_ERROR;
 	}
 	else if(message->rfid_rx[2] != CMD_TAG || message->rfid_rx[2] != CMD_VERSION)
 	{
-		er = COMMAND_ERROR;
+		er = RF_COMMAND_ERROR;
 	}
 	else if(message->rfid_rx[message->rx_size-1] != CRC8(message->rfid_rx, message->rx_size - 1))
 	{
-		er = CRC_ERROR;
+		er = RF_CRC_ERROR;
 	}
 	else
 	{//Добавить условия для двух типов принимаемых сообщений
@@ -55,18 +59,31 @@ error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *messa
 }*/
 void Send_Request_RF_Version(message_TypeDef *message)
 {
-	message->rfid_tx[0] = PREAMBLE;
-	message->rfid_tx[1] = TX_PAYLOAD_SIZE_VERSION;
+	message->rfid_tx[0] = RF_PREAMBLE;
+	message->rfid_tx[1] = RF_TX_PAYLOAD_SIZE_VERSION;
 	message->rfid_tx[2] = 0x01;
-	message->rfid_tx[1] = CRC8(message->rfid_tx, TX_PAYLOAD_SIZE_VERSION+SIZE_OFFSET-1);
+	message->rfid_tx[1] = CRC8(message->rfid_tx, RF_TX_PAYLOAD_SIZE_VERSION+RF_SIZE_OFFSET-1);
 	Send_Message(message);
 }
 
 void Send_Request_RF_Tag(message_TypeDef *message)
 {
-	message->rfid_tx[0] = PREAMBLE;
-	message->rfid_tx[1] = TX_PAYLOAD_SIZE_TAG;
+	message->rfid_tx[0] = RF_PREAMBLE;
+	message->rfid_tx[1] = RF_TX_PAYLOAD_SIZE_TAG;
 	message->rfid_tx[2] = 0x02;								// RFID Tag
-	message->rfid_tx[3] = CRC8(message->rfid_tx, TX_PAYLOAD_SIZE_TAG+SIZE_OFFSET-1);
+	message->rfid_tx[3] = CRC8(message->rfid_tx, RF_TX_PAYLOAD_SIZE_TAG+RF_SIZE_OFFSET-1); //преамб+длина+команда
 	Send_Message(message);
+}
+
+void RFID_Period(void)
+{
+	if(checkrfidPeriod != 0)
+	{
+		checkrfidPeriod--;
+		if(checkrfidPeriod == 0)
+		{
+			RFID_Flag = SET;
+			checkrfidPeriod = CHECK_RFID_PERIOD;
+		}
+	}
 }

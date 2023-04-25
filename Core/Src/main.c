@@ -41,7 +41,6 @@
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef hlpuart1;
-UART_HandleTypeDef huart2;
 
 TIM_HandleTypeDef htim14;
 
@@ -51,6 +50,7 @@ message_TypeDef *message_main;
 message_TypeDef *message_rfid;  //инициализация rfid uart
 mm_TypeDef *mm;
 uint8_t testBuf[10] = {0};
+extern int RFID_Flag;
 
 /* USER CODE END PV */
 
@@ -60,7 +60,6 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_TIM14_Init(void);
-static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void Led(uint8_t led, GPIO_PinState status);
 /* USER CODE END PFP */
@@ -101,11 +100,10 @@ int main(void)
   MX_I2C1_Init();
   MX_LPUART1_UART_Init();
   MX_TIM14_Init();
-  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   Init_Switches();
   message_main = Init_UART(&hlpuart1, MAIN);
-  message_rfid = Init_UART(&huart2, RFID);
+  //message_rfid = Init_UART(&huart2, RFID);
   Receive_Message(message_main);
   Receive_Message(message_rfid);
   HAL_Delay(5);
@@ -145,20 +143,22 @@ int main(void)
 			Receive_Message(message_main);
 		}
 
-  	{//условие ?
+  	if(RFID_Flag == SET) //условие ? // по таймеру сделать, можно по Systick таймеру сделать
+	{
   		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
   		{
   			if(message_rfid->ready == DATA_READY)
 				{
 					cmd_TypeDef data;
 					error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
-					if(error_rf == DATA_NO_ERROR)
+					if(error_rf == RF_DATA_NO_ERROR)
 						{
 							Receive_Message(message_rfid);
 						}
 
 				}
   		}
+  		RFID_Flag == RESET;
   	}
   }
   /* USER CODE END 3 */
@@ -303,42 +303,6 @@ static void MX_LPUART1_UART_Init(void)
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
-
-}
-
-/**
-  * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART2_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 9600;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART2_Init 2 */
-
-  /* USER CODE END USART2_Init 2 */
 
 }
 

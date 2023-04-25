@@ -131,6 +131,7 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
   Check_Switches_Period(); 				// периодическая проверка всех концевиков и кнопок
   	  	  	  	  	  	  	  	  	  	// период SysTick x CHECK_SWITCH_PERIOD = 10мс
+  RFID_Period();						//функция опроса рфид
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
