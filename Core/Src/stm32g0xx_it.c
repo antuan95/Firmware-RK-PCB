@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "switches.h"
 #include "enc.h"
+#include "rfid_parsing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

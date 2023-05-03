@@ -32,8 +32,8 @@ typedef struct
 	uint8_t tx_size;
 	uint8_t m_tx[MESSAGE_MAX_SIZE];
 	uint8_t m_rx[MESSAGE_MAX_SIZE];
-	uint8_t rfid_tx[MESSAGE_MAX_SIZE];
-	uint8_t rfid_rx[MESSAGE_MAX_SIZE];
+//	uint8_t rfid_tx[MESSAGE_MAX_SIZE];
+//	uint8_t rfid_rx[MESSAGE_MAX_SIZE];
 	UART_HandleTypeDef *uart;
 	m_data_rx_TypeDef ready;
 }message_TypeDef;

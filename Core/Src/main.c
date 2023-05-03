@@ -102,9 +102,9 @@ int main(void)
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   Init_Switches();
-  message_main = Init_UART(&hlpuart1, MAIN);
-  //message_rfid = Init_UART(&huart2, RFID);
-  Receive_Message(message_main);
+  //message_main = Init_UART(&hlpuart1, MAIN);
+  message_rfid = Init_UART(&hlpuart1, MAIN);
+  //Receive_Message(message_main);
   Receive_Message(message_rfid);
   HAL_Delay(5);
   mm = MM_Init(&hi2c1);
@@ -122,7 +122,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  	if(message_main->ready == DATA_READY)
+  	/*if(message_main->ready == DATA_READY)
 		{
 			cmd_TypeDef data;
 			error_TypeDef error = Parse_Main_Message(&data, message_main);
@@ -141,25 +141,23 @@ int main(void)
 				}
 			}
 			Receive_Message(message_main);
-		}
+		}*/
 
   	if(RFID_Flag == SET) //условие ? // по таймеру сделать, можно по Systick таймеру сделать
 	{
   		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
-  		{
-  			if(message_rfid->ready == DATA_READY)
-				{
-					cmd_TypeDef data;
-					error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
-					if(error_rf == RF_DATA_NO_ERROR)
-						{
-							Receive_Message(message_rfid);
-						}
-
-				}
-  		}
-  		RFID_Flag == RESET;
+  		RFID_Flag = RESET;
   	}
+  	if(message_rfid->ready == DATA_READY)
+	{
+		cmd_TypeDef data;
+		error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
+		if(error_rf == RF_DATA_NO_ERROR)
+			{
+				Receive_Message(message_rfid);
+			}
+
+	}
   }
   /* USER CODE END 3 */
 }
@@ -352,7 +350,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(RS485_control_GPIO_Port, RS485_control_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RS485_control_GPIO_Port, RS485_control_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_RESET);
