@@ -30,9 +30,9 @@
 #define MM_Y_H								0x04
 #define MM_Z_L								0x05
 #define MM_Z_H								0x06
-#define MM_T_H								0x07
+#define MM_STAT2							0x07
 #define MM_T_L								0x08
-#define MM_STAT2							0x09
+#define MM_T_H								0x09
 #define MM_CID								0x0A
 #define MM_DID								0x0B
 #define MM_CTRL								0x0E
@@ -40,6 +40,9 @@
 #define MM_RST								0x11
 #define MM_OSR_DIG_FILT				0x14
 #define MM_T_EN_DIG_FILT			0x15
+
+
+#define TOTAL_REG_NUMBER			0x16
 
 typedef struct
 {
@@ -67,6 +70,8 @@ void MM_Write_Register(uint8_t reg, uint8_t *data);
 void MM_Read_Register(uint8_t reg, uint8_t *data);
 uint8_t MM_Get_Chip_ID(void);
 mm_data_TypeDef* MM_Get_Data(void);
+void MM_Get_All(void);
+uint8_t MM_Get_Stat(void);
 
 
 #endif

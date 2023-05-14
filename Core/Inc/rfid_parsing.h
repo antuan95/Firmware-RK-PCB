@@ -11,7 +11,7 @@
 #define RF_PREAMBLE							0x43
 #define CMD_VERSION							0x01
 #define CMD_TAG								0x02
-#define RF_SIZE_OFFSET							3 		//преамбула, длина пакета, crc// сравнение того, что приняли, с тем, что должны были принять
+#define RF_SIZE_OFFSET							2 		//преамбула, длина пакета, crc// сравнение того, что приняли, с тем, что должны были принять
 #define RF_TX_PAYLOAD_SIZE_VERSION				4
 #define RF_TX_PAYLOAD_SIZE_TAG					1 //должен быть 1. Длина
 

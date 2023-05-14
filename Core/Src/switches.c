@@ -1,5 +1,7 @@
 #include "switches.h"
 #include "main.h"
+#include "rk_parsing.h"
+#include "rfid_parsing.h"
 
 typedef struct					// структура концевика
 {
@@ -15,19 +17,20 @@ typedef struct					// структура концевика
 volatile switch_TypeDef switches[SWITCHES_NUMBER] = {0};	// массив структур концевиков
 volatile uint8_t checkSwitchPeriod = CHECK_SWITCH_PERIOD;	// переменная формирует период опроса,
 															// период SysTick x checkSwitchPeriod = 10мс
+extern int sensors;
 
 void Init_Switches(void)									// заполняем порты и пины в структурах концевиков
 {
 	switches[BUTTON].pin = Button_Pin;
 	switches[BUTTON].port = Button_GPIO_Port;
-	switches[ASS_DET].pin = Ass_det_Pin;
-	switches[ASS_DET].port = Ass_det_GPIO_Port;
-	switches[L_RING].pin = L_Ring_Pin;
-	switches[L_RING].port = L_Ring_GPIO_Port;
 	switches[ARM_SW].pin = Arm_sw_Pin;
 	switches[ARM_SW].port = Arm_sw_GPIO_Port;
 	switches[MOTOR_SW].pin = Motor_sw_Pin;
 	switches[MOTOR_SW].port = Motor_sw_GPIO_Port;
+	/*switches[ASS_DET].pin = Ass_det_Pin;
+	switches[ASS_DET].port = Ass_det_GPIO_Port;
+	switches[L_RING].pin = L_Ring_Pin;
+	switches[L_RING].port = L_Ring_GPIO_Port;*/
 }
 
 static void Check_Switches(void)
@@ -90,5 +93,6 @@ uint8_t Get_Sensor_Byte(void)
 	}
 	led_status = HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin);
 	byte |= (led_status << SWITCHES_NUMBER);
+	byte |= sensors;
 	return byte;
 }

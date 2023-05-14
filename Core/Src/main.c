@@ -51,6 +51,11 @@ message_TypeDef *message_rfid;  //инициализация rfid uart
 mm_TypeDef *mm;
 uint8_t testBuf[10] = {0};
 extern int RFID_Flag;
+mm_data_TypeDef *mm_d;
+int16_t mmx;
+int16_t mmy;
+int16_t mmz;
+int16_t mmt;
 
 /* USER CODE END PV */
 
@@ -62,6 +67,7 @@ static void MX_LPUART1_UART_Init(void);
 static void MX_TIM14_Init(void);
 /* USER CODE BEGIN PFP */
 void Led(uint8_t led, GPIO_PinState status);
+void MM_Polling(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -102,10 +108,10 @@ int main(void)
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   Init_Switches();
-  //message_main = Init_UART(&hlpuart1, MAIN);
-  message_rfid = Init_UART(&hlpuart1, MAIN);
-  //Receive_Message(message_main);
-  Receive_Message(message_rfid);
+  message_main = Init_UART(&hlpuart1, MAIN);
+//  message_rfid = Init_UART(&huart2, RFID);
+  Receive_Message(message_main);
+//  Receive_Message(message_rfid);
   HAL_Delay(5);
   mm = MM_Init(&hi2c1);
 //  HAL_I2C_Master_Receive(&hi2c1, MM_CHIP_ADDRESS, testBuf, 1, 100);
@@ -122,7 +128,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  	/*if(message_main->ready == DATA_READY)
+  	MM_Polling();			// опрос магнетометра
+  	HAL_Delay(100);
+
+
+  	if(message_main->ready == DATA_READY)
 		{
 			cmd_TypeDef data;
 			error_TypeDef error = Parse_Main_Message(&data, message_main);
@@ -141,26 +151,26 @@ int main(void)
 				}
 			}
 			Receive_Message(message_main);
-		}*/
+		}
 
   	if(RFID_Flag == SET) //условие ? // по таймеру сделать, можно по Systick таймеру сделать
-	{
-  		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
-  		RFID_Flag = RESET;
-  	}
-  	if(message_rfid->ready == DATA_READY)
-	{
-		cmd_TypeDef data;
-		error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
-		if(error_rf == RF_DATA_NO_ERROR)
-			{
-				Receive_Message(message_rfid);
-			}
+  		{
+  	  		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
+  	  		RFID_Flag = RESET;
+  	  	}
+  	  	if(message_rfid->ready == DATA_READY)
+  		{
+  			cmd_TypeDef data;
+  			error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
+  			if(error_rf == RF_DATA_NO_ERROR)
+  				{
+  					Receive_Message(message_rfid);
+  				}
 
-	}
-  }
-  /* USER CODE END 3 */
-}
+  		}
+  	  }
+  	  /* USER CODE END 3 */
+  	}
 
 /**
   * @brief System Clock Configuration
@@ -350,7 +360,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(RS485_control_GPIO_Port, RS485_control_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(RS485_control_GPIO_Port, RS485_control_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_RESET);
@@ -433,6 +443,15 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t pin)
 void Led(uint8_t led, GPIO_PinState status)
 {
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, status);
+}
+
+void MM_Polling(void)
+{
+  mm_d = MM_Get_Data();
+  mmx = (uint16_t)(mm_d->x_h << 8) | mm_d->x_l;
+  mmy = (uint16_t)(mm_d->y_h << 8) | mm_d->y_l;
+  mmz = (uint16_t)(mm_d->z_h << 8) | mm_d->z_l;
+  mmt = ((uint16_t)(mm_d->t_h << 8) | mm_d->t_l)/5;
 }
 /* USER CODE END 4 */
 

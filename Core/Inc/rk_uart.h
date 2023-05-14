@@ -32,8 +32,8 @@ typedef struct
 	uint8_t tx_size;
 	uint8_t m_tx[MESSAGE_MAX_SIZE];
 	uint8_t m_rx[MESSAGE_MAX_SIZE];
-//	uint8_t rfid_tx[MESSAGE_MAX_SIZE];
-//	uint8_t rfid_rx[MESSAGE_MAX_SIZE];
+	uint8_t rfid_tx[MESSAGE_MAX_SIZE];
+	uint8_t rfid_rx[MESSAGE_MAX_SIZE];
 	UART_HandleTypeDef *uart;
 	m_data_rx_TypeDef ready;
 }message_TypeDef;
@@ -43,9 +43,10 @@ typedef struct
 	uint8_t addr;
 	uint8_t cmd;
 	uint8_t value;
-	uint8_t value_sensors;
-	uint8_t value_tag;
 	uint8_t value_version; //версия fw rfid
+	uint8_t uid_len;
+	uint8_t value_tag;
+	uint8_t value_sensors;
 }cmd_TypeDef;
 
 message_TypeDef* Init_UART(UART_HandleTypeDef *huart, uarts_TypeDef uart_number);

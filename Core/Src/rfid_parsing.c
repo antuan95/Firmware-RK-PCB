@@ -1,13 +1,15 @@
 #include <rfid_parsing.h>
+#include "rk_uart.h"
 
 volatile int checkrfidPeriod = CHECK_RFID_PERIOD;	// переменная формирует период опроса,
 															// период SysTick x checkSwitchPeriod = 10мс
 uint8_t RFID_Flag;
+uint8_t sensors = 0;
 
 error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *message)
 {
 	error_RF_TypeDef er = RF_DATA_NO_ERROR;
-	if(message->rx_size != message->m_rx[1] + RF_SIZE_OFFSET)
+	if(message->rx_size != message->m_rx[1] + RF_SIZE_OFFSET)	//сдвиг подумать, какой должен быть
 	{
 		er = RF_SIZE_ERROR;
 	}
@@ -25,8 +27,10 @@ error_RF_TypeDef Parse_RFID_Message(cmd_TypeDef *command, message_TypeDef *messa
 	}
 	else
 	{//Добавить условия для двух типов принимаемых сообщений
-		command->value_sensors = message->m_rx[4];
-		command->value_tag = message->m_rx[3];
+		command->value_sensors = message->m_rx[5];
+		sensors |= (command->value_sensors) << 4;
+		command->value_tag = message->m_rx[4];
+		command->uid_len = message->m_rx[3];
 		command->cmd = message->m_rx[2];
 		/* Добавить парсинг версии прошивки
 	message->rfid_tx[3] = 0x01;								// RFID FW Version 1st byte
