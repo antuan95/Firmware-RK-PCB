@@ -1,11 +1,11 @@
 #include "main.h"
 #include "rk_uart.h"
 
-message_TypeDef messages[UARTS_NUMBER];
+message_TypeDef messages[UARTS_NUMBER] = {0};
+uint8_t uart_number = 0;
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 {
-//	OUT_PIN_GPIO_Port->BSRR |= (uint32_t) OUT_PIN_Pin << 16U;
 	for(uint8_t i = 0; i < UARTS_NUMBER; i++)
 	{
 		if(huart == messages[i].uart)
@@ -18,10 +18,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if(huart == messages[MAIN].uart)
-	{
-//		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-	}
+
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
@@ -36,10 +33,15 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	}
 }
 
-message_TypeDef* Init_UART(UART_HandleTypeDef *huart, uarts_TypeDef uart_number)
+message_TypeDef* Init_UART(UART_HandleTypeDef *huart)
 {
 	messages[uart_number].uart = huart;
-	return &messages[uart_number];
+	return &messages[uart_number++];
+}
+
+m_ready_rx_TypeDef Is_Message_Ready(message_TypeDef *message)
+{
+	return message->ready;
 }
 
 void Receive_Message(message_TypeDef *message)
@@ -52,13 +54,24 @@ void Receive_Message(message_TypeDef *message)
 										message->m_rx,
 										MESSAGE_MAX_SIZE);
 	}
+	else
+	{
+
+	}
 
 }
 
 void Send_Message(message_TypeDef *message)
 {
+	if(message->uart != NULL)
+	{
 		HAL_UART_Transmit_IT(message->uart,
 						 	 message->m_tx,
 							 message->tx_size);
+	}
+	else
+	{
+
+	}
 
 }

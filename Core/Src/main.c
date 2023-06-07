@@ -1,10 +1,10 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Rotary_knob Firmware
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Rotary_knob Firmware
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -15,7 +15,6 @@
 #include "enc.h"
 #include "rk_uart.h"
 #include "rk_parsing.h"
-#include "rfid_parsing.h"
 #include "rk_mm.h"
 /* USER CODE END Includes */
 
@@ -26,10 +25,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define GET_STATE		0x71
-#define LED				0x72
-#define GET_VERSION		0x01
-#define GET_TAG			0x02
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -39,6 +35,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c2;
 
 UART_HandleTypeDef hlpuart1;
 
@@ -47,14 +44,10 @@ TIM_HandleTypeDef htim14;
 /* USER CODE BEGIN PV */
 
 message_TypeDef *message_main;
-message_TypeDef *message_rfid;  //инициализация rfid uart
-mm_TypeDef *mm;
-uint8_t testBuf[10] = {0};
-mm_data_TypeDef *mm_d;
-int16_t mmx;
-int16_t mmy;
-int16_t mmz;
-int16_t mmt;
+message_TypeDef *message_rfid;
+mm_TypeDef *mm_motor;
+mm_TypeDef *mm_arm;
+
 
 /* USER CODE END PV */
 
@@ -64,8 +57,8 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_TIM14_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
-void Led(uint8_t led, GPIO_PinState status);
 void MM_Polling(void);
 /* USER CODE END PFP */
 
@@ -82,6 +75,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -97,7 +91,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  HAL_Delay(3000);		// задержка перед конфигурацией периферии
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -105,67 +99,39 @@ int main(void)
   MX_I2C1_Init();
   MX_LPUART1_UART_Init();
   MX_TIM14_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-  Init_Switches();
-  message_main = Init_UART(&hlpuart1, MAIN);
-//  message_rfid = Init_UART(&huart2, RFID);
-  Receive_Message(message_main);
-//  Receive_Message(message_rfid);
+	Init_Switches();
+	message_main = Init_UART(&hlpuart1);
+	Receive_Message(message_main);
+  MM_Res();
+  mm_motor = MM_Init(&hi2c1);
+  mm_arm = MM_Init(&hi2c2);
+  MM_Enable(mm_motor);
+  MM_Enable(mm_arm);
   HAL_Delay(5);
-  mm = MM_Init(&hi2c1);
-//  HAL_I2C_Master_Receive(&hi2c1, MM_CHIP_ADDRESS, testBuf, 1, 100);
-//  HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_SET);
-//  uint8_t cmd = 0x71;
-//  MM_Write_Register(MM_CTRL, &cmd);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while(1)
+	{
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  	MM_Polling();			// опрос магнетометра
-  	HAL_Delay(100);
 
-
-  	if(message_main->ready == DATA_READY)
+		if(Is_Message_Ready(message_main) == DATA_READY)
 		{
-			cmd_TypeDef data;
-			error_TypeDef error = Parse_Main_Message(&data, message_main);
-			if(error == DATA_NO_ERROR)
-			{
-				switch(data.cmd)
-				{
-				case GET_STATE:
-					Send_State(message_main);
-					break;
-				case LED:
-					Led(1, data.value);
-					break;
-				default:
-					break;
-				}
-			}
+			Parse_Main_Message(message_main);
 			Receive_Message(message_main);
 		}
-
-//  	if(1)
-//  	{//условие ?
-//  		Send_Request_RF_Tag(message_rfid); //Периодически опрашивать плату rfid, раз в сек?
-//			if(message_rfid->ready == DATA_READY)
-//			{
-//				cmd_TypeDef data;
-//				error_RF_TypeDef error_rf = Parse_RFID_Message(&data, message_rfid);
-//				if(error_rf == RF_DATA_NO_ERROR)
-//				{
-//					Receive_Message(message_rfid);
-//				}
-//			}
-//  	}
-  }
+		if(Is_Message_Ready(message_rfid) == DATA_READY)
+		{
+			Parse_RFID_Message(message_rfid);
+			Receive_Message(message_rfid);
+		}
+		Send_Request_RF_Tag(message_rfid);    // Периодический запрос id метки
+	}
   /* USER CODE END 3 */
 }
 
@@ -260,6 +226,54 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.Timing = 0x00707CBB;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
 
 }
 
@@ -420,7 +434,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void Rising_Falling_Callback(uint16_t pin) // обрабатываем прерывание по любому фронту
+void Rising_Falling_Callback(uint16_t pin)    // обрабатываем прерывание по любому фронту
 {
 	if((pin == EncA_Pin) || (pin == EncB_Pin))
 	{
@@ -437,19 +451,7 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t pin)
 {
 	Rising_Falling_Callback(pin);
 }
-void Led(uint8_t led, GPIO_PinState status)
-{
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, status);
-}
 
-void MM_Polling(void)
-{
-  mm_d = MM_Get_Data();
-  mmx = (uint16_t)(mm_d->x_h << 8) | mm_d->x_l;
-  mmy = (uint16_t)(mm_d->y_h << 8) | mm_d->y_l;
-  mmz = (uint16_t)(mm_d->z_h << 8) | mm_d->z_l;
-  mmt = ((uint16_t)(mm_d->t_h << 8) | mm_d->t_l)/5;
-}
 /* USER CODE END 4 */
 
 /**
@@ -459,11 +461,11 @@ void MM_Polling(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while(1)
+	{
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 

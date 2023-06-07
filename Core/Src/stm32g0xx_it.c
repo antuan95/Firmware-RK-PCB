@@ -24,6 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include "switches.h"
 #include "enc.h"
+#include "rk_parsing.h"
+#include "rk_mm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,6 +60,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 extern UART_HandleTypeDef hlpuart1;
 extern TIM_HandleTypeDef htim14;
 /* USER CODE BEGIN EV */
@@ -131,6 +134,8 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
   Check_Switches_Period(); 				// периодическая проверка всех концевиков и кнопок
   	  	  	  	  	  	  	  	  	  	// период SysTick x CHECK_SWITCH_PERIOD = 10мс
+  RFID_Period();						//функция опроса рфид
+  MM_Poll_Period();         // период опроса магнетометров
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
@@ -204,6 +209,24 @@ void I2C1_IRQHandler(void)
   /* USER CODE BEGIN I2C1_IRQn 1 */
 
   /* USER CODE END I2C1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles I2C2 global interrupt.
+  */
+void I2C2_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C2_IRQn 0 */
+
+  /* USER CODE END I2C2_IRQn 0 */
+  if (hi2c2.Instance->ISR & (I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR)) {
+    HAL_I2C_ER_IRQHandler(&hi2c2);
+  } else {
+    HAL_I2C_EV_IRQHandler(&hi2c2);
+  }
+  /* USER CODE BEGIN I2C2_IRQn 1 */
+
+  /* USER CODE END I2C2_IRQn 1 */
 }
 
 /**

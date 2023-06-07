@@ -44,34 +44,32 @@
 
 #define TOTAL_REG_NUMBER			0x16
 
+#define MM_NUMBERS            2
+
+#define MM_PERIOD             1000
+
 typedef struct
 {
 	I2C_HandleTypeDef *i2c_h;
-	uint8_t tx_data[8];
-	uint8_t rx_data[8];
+	int16_t x;
+	int16_t y;
+	int16_t z;
+	int16_t t;
 	uint8_t error;
 }mm_TypeDef;
 
-typedef struct
-{
-	uint8_t x_l;
-	uint8_t x_h;
-	uint8_t y_l;
-	uint8_t y_h;
-	uint8_t z_l;
-	uint8_t z_h;
-	uint8_t t_l;
-	uint8_t t_h;
-}mm_data_TypeDef;
-
 mm_TypeDef* MM_Init(I2C_HandleTypeDef *i2c_handle);
-void MM_Enable(void);
-void MM_Write_Register(uint8_t reg, uint8_t *data);
-void MM_Read_Register(uint8_t reg, uint8_t *data);
-uint8_t MM_Get_Chip_ID(void);
-mm_data_TypeDef* MM_Get_Data(void);
-void MM_Get_All(void);
-uint8_t MM_Get_Stat(void);
+void MM_Enable(mm_TypeDef *mm_t);
+void MM_Write_Register(mm_TypeDef *mm_t, uint8_t reg, uint8_t *data);
+void MM_Read_Register(mm_TypeDef *mm_t, uint8_t reg, uint8_t *data);
+uint8_t MM_Get_Chip_ID(mm_TypeDef *mm_t);
+void MM_Get_Data(mm_TypeDef *mm_t);
+void MM_Get_All(mm_TypeDef *mm_t);
+uint8_t MM_Get_Stat(mm_TypeDef *mm_t);
+void MM_Res(void);
+void MM_Poll_Period(void);
+uint8_t MM_Get_Motor_Pos(void);
+uint8_t MM_Get_Arm_Pos(void);
 
 
 #endif

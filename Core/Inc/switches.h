@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define SWITCHES_NUMBER				5			// количество концевиков
+#define SWITCHES_NUMBER				3			// количество концевиков
 #define CHECK_SWITCH_PERIOD			10			// период опроса концевиков SysTick x CHECK_SWITCH_PERIOD = 10мс
 #define NUMBER_OF_READS				3			// количество считываний концевика
 
@@ -17,8 +17,6 @@ typedef enum									// возможные состояния концевико
 typedef enum									// названия концевиков
 {
 	BUTTON = 0,
-	ASS_DET,
-	L_RING,
 	ARM_SW,
 	MOTOR_SW
 }switch_name_TypeDef;

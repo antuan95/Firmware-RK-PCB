@@ -20,10 +20,6 @@ void Init_Switches(void)									// заполняем порты и пины в
 {
 	switches[BUTTON].pin = Button_Pin;
 	switches[BUTTON].port = Button_GPIO_Port;
-	switches[ASS_DET].pin = Ass_det_Pin;
-	switches[ASS_DET].port = Ass_det_GPIO_Port;
-	switches[L_RING].pin = L_Ring_Pin;
-	switches[L_RING].port = L_Ring_GPIO_Port;
 	switches[ARM_SW].pin = Arm_sw_Pin;
 	switches[ARM_SW].port = Arm_sw_GPIO_Port;
 	switches[MOTOR_SW].pin = Motor_sw_Pin;

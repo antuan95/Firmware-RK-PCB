@@ -79,6 +79,10 @@ void Error_Handler(void);
 #define RESB_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_6
 #define LED_GPIO_Port GPIOC
+#define ARM_SCL_Pin GPIO_PIN_11
+#define ARM_SCL_GPIO_Port GPIOA
+#define ARM_SDA_Pin GPIO_PIN_12
+#define ARM_SDA_GPIO_Port GPIOA
 #define Arm_sw_Pin GPIO_PIN_3
 #define Arm_sw_GPIO_Port GPIOB
 #define Motor_sw_Pin GPIO_PIN_4
