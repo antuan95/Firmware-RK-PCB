@@ -83,6 +83,10 @@ void Error_Handler(void);
 #define ARM_SCL_GPIO_Port GPIOA
 #define ARM_SDA_Pin GPIO_PIN_12
 #define ARM_SDA_GPIO_Port GPIOA
+#define RFID_TX_Pin GPIO_PIN_14
+#define RFID_TX_GPIO_Port GPIOA
+#define RFID_RX_Pin GPIO_PIN_15
+#define RFID_RX_GPIO_Port GPIOA
 #define Arm_sw_Pin GPIO_PIN_3
 #define Arm_sw_GPIO_Port GPIOB
 #define Motor_sw_Pin GPIO_PIN_4

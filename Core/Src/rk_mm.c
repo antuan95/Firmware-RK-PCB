@@ -1,8 +1,8 @@
 #include "rk_mm.h"
 #include "main.h"
 
-mm_TypeDef mm[MM_NUMBERS] = { 0 };
-uint8_t mm_num = 0;
+mm_TypeDef mm[MM_NUMBERS] = { 0 };                // массив для хранения структур магентометров
+uint8_t mm_num = 0;                               // количество магнетометров
 volatile uint16_t check_MM_Period = MM_PERIOD;    // период опроса магнетометров
 
 void MM_Res(void)
@@ -13,27 +13,27 @@ void MM_Res(void)
 	HAL_Delay(2);
 }
 
-mm_TypeDef* MM_Init(I2C_HandleTypeDef *i2c_handle)							// инициализация магнетометра
+mm_TypeDef* MM_Init(I2C_HandleTypeDef *i2c_handle)                // инициализация магнетометра
 {
-	mm[mm_num].i2c_h = i2c_handle;
-	return &mm[mm_num++];
+	mm[mm_num].i2c_h = i2c_handle;                                  // назначить интерфейс i2c
+	return &mm[mm_num++];                                           // увеличить количество назначенных интерфейсов
 }
 
 void MM_Enable(mm_TypeDef *mm_t)
 {
 	uint8_t chip_id = 0;
 	uint8_t cmd = 0;
-	chip_id = MM_Get_Chip_ID(mm_t);								// прочитать ID магнетометра
+	chip_id = MM_Get_Chip_ID(mm_t);                    // прочитать ID магнетометра
 	if(chip_id != 0)
 	{
 		cmd = 0x72;
-		MM_Write_Register(mm_t, MM_CTRL, &cmd);				// включение осей и выбор частоты сэмплирования
+		MM_Write_Register(mm_t, MM_CTRL, &cmd);           // включение осей и выбор частоты сэмплирования
 		cmd = 0xDB;
-		MM_Write_Register(mm_t, MM_OSR_DIG_FILT, &cmd);    // фильтры осей xy и оверсэмплинг
+		MM_Write_Register(mm_t, MM_OSR_DIG_FILT, &cmd);   // фильтры осей xy и оверсэмплинг
 		cmd = 0xB3;
-		MM_Write_Register(mm_t, MM_T_EN_DIG_FILT, &cmd);    // фильтр оси z и температурная компенсация
+		MM_Write_Register(mm_t, MM_T_EN_DIG_FILT, &cmd);  // фильтр оси z и температурная компенсация
 		MM_Get_All(mm_t);
-		MM_Get_Stat(mm_t);							// для запуска сэмплирования необходимо прочитать регистр STAT
+		MM_Get_Stat(mm_t);                                // для запуска сэмплирования необходимо прочитать регистр STAT
 	}
 	else
 		mm_t->error = 1;
@@ -108,10 +108,10 @@ void MM_Poll_Period(void)
 
 uint8_t MM_Get_Motor_Pos()
 {
-	return 0;
+	return 0;                         // здесь должна быть обработка данных с магнитометра
 }
 
 uint8_t MM_Get_Arm_Pos()
 {
-	return 0;
+	return 0;                         // здесь должна быть обработка данных с магнитометра
 }

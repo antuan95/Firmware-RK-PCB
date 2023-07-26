@@ -1,4 +1,4 @@
-#include <rk_parsing.h>
+#include "rk_parsing.h"
 
 volatile uint32_t checkrfidPeriod = CHECK_RFID_PERIOD;    // переменная формирует период опроса,
 																													// период SysTick x checkSwitchPeriod = 10мс
@@ -109,12 +109,12 @@ uint8_t CRC8(const uint8_t *data, int length)
 
 void Send_State(message_TypeDef *message)
 {
-	uint8_t sensors = Get_Sensor_Byte();
+	uint8_t sensors = Get_Sensor_Byte();        // получить состояние концевиков
 	message->m_tx[0] = PREAMBLE;
 	message->m_tx[1] = ADDRESS;
 	message->m_tx[2] = TX_PAYLOAD_SIZE;
 	message->m_tx[3] = Get_Tag_UID();						// RFID Tag
-	message->m_tx[4] = (sensors | ((data_rfid.value_sensors << 4) & 0x70));
+	message->m_tx[4] = (sensors | ((data_rfid.value_sensors << 4) & 0x70));  // состояние концевиков с rfid
 	message->m_tx[5] = MM_Get_Motor_Pos();								// Motor hinge position
 	message->m_tx[6] = MM_Get_Arm_Pos();								// Arm hinge position
 	message->m_tx[7] = Get_Button_Counter();

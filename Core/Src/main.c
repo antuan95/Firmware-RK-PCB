@@ -38,6 +38,7 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
 UART_HandleTypeDef hlpuart1;
+UART_HandleTypeDef huart2;
 
 TIM_HandleTypeDef htim14;
 
@@ -58,6 +59,7 @@ static void MX_I2C1_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_I2C2_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void MM_Polling(void);
 /* USER CODE END PFP */
@@ -91,7 +93,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  HAL_Delay(3000);		// задержка перед конфигурацией периферии
+  HAL_Delay(5000);		// задержка перед конфигурацией периферии
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -100,15 +102,18 @@ int main(void)
   MX_LPUART1_UART_Init();
   MX_TIM14_Init();
   MX_I2C2_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-	Init_Switches();
-	message_main = Init_UART(&hlpuart1);
-	Receive_Message(message_main);
-  MM_Res();
-  mm_motor = MM_Init(&hi2c1);
-  mm_arm = MM_Init(&hi2c2);
-  MM_Enable(mm_motor);
-  MM_Enable(mm_arm);
+	Init_Switches();                          // инициализация концевиков
+	message_main = Init_UART(&hlpuart1);      // инициализация uart rk <-> main pcb
+	message_rfid = Init_UART(&huart2);
+	Receive_Message(message_main);            // старт приема сообщений
+	Receive_Message(message_rfid);
+  MM_Res();                                 // ресет магнитометров
+  mm_motor = MM_Init(&hi2c1);               // инициализация магнитометра motor
+  mm_arm = MM_Init(&hi2c2);                 // инициализация магнитометра arm
+  MM_Enable(mm_motor);											// старт обработки магнитометра
+  MM_Enable(mm_arm);                        // старт обработки магнитометра
   HAL_Delay(5);
   /* USER CODE END 2 */
 
@@ -122,13 +127,13 @@ int main(void)
 
 		if(Is_Message_Ready(message_main) == DATA_READY)
 		{
-			Parse_Main_Message(message_main);
-			Receive_Message(message_main);
+			Parse_Main_Message(message_main);                 // обработка сообщения от main pcb
+			Receive_Message(message_main);                    // рестарт приема сообщений
 		}
 		if(Is_Message_Ready(message_rfid) == DATA_READY)
 		{
-			Parse_RFID_Message(message_rfid);
-			Receive_Message(message_rfid);
+			Parse_RFID_Message(message_rfid);                 // обработка сообщения от rfid
+			Receive_Message(message_rfid);                    // рестарт приема сообщений
 		}
 		Send_Request_RF_Tag(message_rfid);    // Периодический запрос id метки
 	}
@@ -322,6 +327,42 @@ static void MX_LPUART1_UART_Init(void)
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 
