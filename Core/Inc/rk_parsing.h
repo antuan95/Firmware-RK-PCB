@@ -62,7 +62,7 @@ typedef struct
 {
 	uint8_t cmd;
 	uint8_t uid_len;
-	uint8_t tag_uid[MAX_UID_LEN];
+	uint8_t tag_uid;
 	uint8_t tag_version[TAG_VER_SIZE];
 	uint8_t value_sensors;
 } data_rfid_TypeDef;

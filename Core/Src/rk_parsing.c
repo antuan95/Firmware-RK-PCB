@@ -75,12 +75,8 @@ error_RF_TypeDef Parse_RFID_Message(message_TypeDef *message)
 		}
 		else if(data_rfid.cmd == CMD_TAG_UID)
 		{
-			data_rfid.uid_len = message->m_rx[3];
-			for(uint8_t i = 0; i < data_rfid.uid_len; i++)
-			{
-				data_rfid.tag_uid[i] = message->m_rx[i + RFID_PAYLOAD_TAG_OFFSET];
-			}
-			data_rfid.value_sensors = message->m_rx[data_rfid.uid_len + RFID_PAYLOAD_TAG_OFFSET];
+			data_rfid.tag_uid = message->m_rx[3];
+			data_rfid.value_sensors = message->m_rx[4];
 		}
 	}
 	return er;
@@ -163,7 +159,7 @@ void RFID_Period(void)
 
 uint8_t Get_Tag_UID(void)
 {
-	return data_rfid.tag_uid[0];
+	return data_rfid.tag_uid;
 }
 
 void Led(uint8_t led, GPIO_PinState status)
