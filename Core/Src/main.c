@@ -107,6 +107,7 @@ int main(void)
 	Init_Switches();                          // инициализация концевиков
 	message_main = Init_UART(&hlpuart1);      // инициализация uart rk <-> main pcb
 	message_rfid = Init_UART(&huart2);
+	Enable_Direction_Switch(message_main, RE_DE_GPIO_Port, RE_DE_Pin);
 	Receive_Message(message_main);            // старт приема сообщений
 	Receive_Message(message_rfid);
   MM_Res();                                 // ресет магнитометров
@@ -412,7 +413,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(RS485_control_GPIO_Port, RS485_control_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RE_DE_GPIO_Port, RE_DE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RESB_GPIO_Port, RESB_Pin, GPIO_PIN_RESET);
@@ -426,12 +427,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : RS485_control_Pin */
-  GPIO_InitStruct.Pin = RS485_control_Pin;
+  /*Configure GPIO pin : RE_DE_Pin */
+  GPIO_InitStruct.Pin = RE_DE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(RS485_control_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(RE_DE_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : EncA_Pin */
   GPIO_InitStruct.Pin = EncA_Pin;

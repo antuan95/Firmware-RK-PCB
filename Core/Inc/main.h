@@ -67,8 +67,8 @@ void Error_Handler(void);
 #define Main_RX_GPIO_Port GPIOA
 #define Button_Pin GPIO_PIN_4
 #define Button_GPIO_Port GPIOA
-#define RS485_control_Pin GPIO_PIN_6
-#define RS485_control_GPIO_Port GPIOA
+#define RE_DE_Pin GPIO_PIN_6
+#define RE_DE_GPIO_Port GPIOA
 #define EncA_Pin GPIO_PIN_7
 #define EncA_GPIO_Port GPIOA
 #define EncA_EXTI_IRQn EXTI4_15_IRQn

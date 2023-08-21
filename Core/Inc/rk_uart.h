@@ -25,6 +25,18 @@ typedef enum
 //	MAIN = 0,
 //	RFID = 1
 //}uarts_TypeDef;
+typedef enum
+{
+	RE_DE_ON,
+	RE_DE_OFF
+}re_de_TypeDef;
+
+typedef struct
+{
+	re_de_TypeDef is_half_duplex;
+	GPIO_TypeDef * re_de_port;
+	uint16_t re_de_pin;
+}direction_switch_TypeDef;
 
 typedef struct
 {
@@ -34,10 +46,12 @@ typedef struct
 	uint8_t m_rx[MESSAGE_MAX_SIZE];
 	UART_HandleTypeDef *uart;
 	m_ready_rx_TypeDef ready;
+	direction_switch_TypeDef direction_switch;
 }message_TypeDef;
 
 message_TypeDef* Init_UART(UART_HandleTypeDef *huart);
 m_ready_rx_TypeDef Is_Message_Ready(message_TypeDef *message);
 void Receive_Message(message_TypeDef *message);
 void Send_Message(message_TypeDef *message);
+void Enable_Direction_Switch(message_TypeDef *message, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
 #endif
