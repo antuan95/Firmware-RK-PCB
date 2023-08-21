@@ -107,7 +107,7 @@ int main(void)
 	Init_Switches();                          // инициализация концевиков
 	message_main = Init_UART(&hlpuart1);      // инициализация uart rk <-> main pcb
 	message_rfid = Init_UART(&huart2);
-	Enable_Direction_Switch(message_main, RE_DE_GPIO_Port, RE_DE_Pin);
+	Enable_Direction_Switch(message_main, RE_DE_GPIO_Port, RE_DE_Pin); // включение переключение прием-передача для RS485
 	Receive_Message(message_main);            // старт приема сообщений
 	Receive_Message(message_rfid);
   MM_Res();                                 // ресет магнитометров
